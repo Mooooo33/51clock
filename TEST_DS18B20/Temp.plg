@@ -1,0 +1,17 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+G:\ARM-STM32\步骤6 单片机例程\51例程\15 18B20-温度传感\C版\Temp.uv2
+Project File Date:  12/08/2010
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling TemMain.c...
+compiling Temp.c...
+linking...
+Program Size: data=59.1 xdata=0 code=1198
+creating hex file from "Temp"...
+"Temp" - 0 Error(s), 0 Warning(s).
