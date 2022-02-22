@@ -1,0 +1,12 @@
+C51 COMPILER V9.54   TEMP                                                                  12/23/2021 09:58:47 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE TEMP
+OBJECT MODULE PLACED IN temp.OBJ
+COMPILER INVOKED BY: C:\Keil\MDK\C51\BIN\C51.EXE temp.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+*** ERROR C318 OF temp.c: can't open file 'temp.c'
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

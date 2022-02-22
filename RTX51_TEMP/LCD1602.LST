@@ -1,0 +1,143 @@
+C51 COMPILER V9.54   LCD1602                                                               12/23/2021 10:19:20 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE LCD1602
+OBJECT MODULE PLACED IN LCD1602.OBJ
+COMPILER INVOKED BY: C:\Keil\MDK\C51\BIN\C51.EXE LCD1602.C OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include<rtx51tny.h>
+   2          #include<reg52.h>
+   3          #include<absacc.h>
+   4          #define u8 unsigned char
+   5          sbit RS=P2^6; //LCD数据/命令选择端
+   6          sbit RW=P2^5; //LCD读/写端
+   7          sbit EN=P2^7; //LCD使能端
+   8          
+   9          /***************LCD****************/
+  10          void write_com(unsigned com)//写操作
+  11          {
+  12   1         EN=0;RS=0;RW=0;
+  13   1         P0=com;
+  14   1         delay_50us(1);
+*** WARNING C206 IN LINE 14 OF LCD1602.C: 'delay_50us': missing function-prototype
+*** ERROR C267 IN LINE 14 OF LCD1602.C: 'delay_50us': requires ANSI-style prototype
+  15   1         EN=1;
+  16   1         delay_50us(5);
+  17   1         EN=0;
+  18   1      }
+  19          void write_data(unsigned char dat)//写数据
+  20          {
+  21   1         EN=0;RS=1;RW=0;
+  22   1         P0=dat;
+  23   1         delay_50us(1);
+  24   1         EN=1;
+  25   1         delay_50us(5);
+  26   1         EN=0;
+  27   1      }
+  28          void Init_LCD(void)//初始化
+  29          {
+  30   1        delay_50us(5);
+  31   1        write_com(0x38);//写指令38H 不检测忙信号
+  32   1        delay_50us(1);
+  33   1        write_com(0x38);
+  34   1        delay_50us(1);
+  35   1        write_com(0x38);//不检测忙信号，之后每次写指令、读/写数据操作前均需检测忙信
+  36   1        write_com(0x38);//显示模式设置
+  37   1        write_com(0x08); //只开显示
+  38   1        write_com(0x01); //清屏
+  39   1        write_com(0x06);//地址加1，当写入数据的时候光标右移
+  40   1        write_com(0x0C); //开显示，不显示光标
+  41   1      }
+  42          //初始化显示
+  43          void display0()//显示welcome to use TEMP Monitoring
+  44          {
+  45   1        unsigned char i,w,h=0x8f,i1,w1,h1=0xcf,w2,i2,h2,g=2;
+  46   1        Init_LCD();
+  47   1          for(w=0;w<16;w++)  //显示welcome to use
+  48   1        {
+  49   2          write_com(h--);//第一行自减左移
+  50   2          for(i=0;i<16;i++)
+  51   2          {
+  52   3            write_data(huany[i]);
+*** ERROR C202 IN LINE 52 OF LCD1602.C: 'huany': undefined identifier
+C51 COMPILER V9.54   LCD1602                                                               12/23/2021 10:19:20 PAGE 2   
+
+  53   3            delay_50us(15);
+  54   3          }
+  55   2        }
+  56   1        for(w1=0;w1<16;w1++)//显示TEMP Monitoring
+  57   1        {
+  58   2          write_com(h1--);//第二行自减左移
+  59   2          for(i1=0;i1<16;i1++)
+  60   2          {
+  61   3            write_data(tt[i1]);
+*** ERROR C202 IN LINE 61 OF LCD1602.C: 'tt': undefined identifier
+  62   3            delay_50us(15);
+  63   3          }
+  64   2        }
+  65   1        delay_50us(5000);//显示loading
+  66   1        Init_LCD();
+  67   1        write_com(0x80);
+  68   1        for(w2=0;w2<16;w2++)//向右显示
+  69   1        {
+  70   2          write_data(duqu[w2]);
+*** ERROR C202 IN LINE 70 OF LCD1602.C: 'duqu': undefined identifier
+  71   2          delay_50us(200); 
+  72   2        }
+  73   1        while(g--)//小数点循环亮灭
+  74   1        {
+  75   2          write_com(0x8a);
+  76   2          for(i2=0;i2<3;i2++)
+  77   2          {
+  78   3            write_data(duqu[i2]);
+*** ERROR C202 IN LINE 78 OF LCD1602.C: 'duqu': undefined identifier
+  79   3          }
+  80   2          write_com(0x8a);
+  81   2          for(h2=10;h2<14;h2++)
+  82   2          {
+  83   3            delay_50us(300);
+  84   3            write_data(duqu[h2]);
+*** ERROR C202 IN LINE 84 OF LCD1602.C: 'duqu': undefined identifier
+  85   3            delay_50us(300);
+  86   3          }
+  87   2        }
+  88   1      }
+  89          void display1()//显示框架
+  90          {
+  91   1        unsigned char p,q;
+  92   1        Init_LCD();//全局清零
+  93   1        write_com(0x80);
+  94   1        for(q=0;q<16;q++)//显示TMHL
+  95   1        {
+  96   2          write_data(tab1[q]);
+*** ERROR C202 IN LINE 96 OF LCD1602.C: 'tab1': undefined identifier
+  97   2        }
+  98   1        write_com(0xc1);
+  99   1        for(p=0;p<16;p++)
+ 100   1        write_data(tab2[p]);
+*** ERROR C202 IN LINE 100 OF LCD1602.C: 'tab2': undefined identifier
+ 101   1      }
+ 102          
+ 103          void delay_50us(unsigned int t)//延时
+ 104          {
+*** ERROR C231 IN LINE 104 OF LCD1602.C: 'delay_50us': redefinition
+ 105   1        unsigned int j,k;
+ 106   1        for (;t>0;t--)
+ 107   1        {
+C51 COMPILER V9.54   LCD1602                                                               12/23/2021 10:19:20 PAGE 3   
+
+ 108   2          for(j=10;j>0;j--)
+ 109   2          {
+ 110   3           for(k=1;k>0;k--);
+ 111   3          }
+ 112   2        }
+ 113   1      }
+*** ERROR C231 IN LINE 113 OF LCD1602.C: 'delay_50us': redefinition
+ 114          void delay(unsigned int i)//全局延时
+ 115          {
+ 116   1        while(i--);
+ 117   1      }
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  10 ERROR(S)

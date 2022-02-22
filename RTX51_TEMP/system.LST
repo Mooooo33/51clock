@@ -1,0 +1,290 @@
+C51 COMPILER V9.54   SYSTEM                                                                12/23/2021 10:19:20 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE SYSTEM
+OBJECT MODULE PLACED IN system.OBJ
+COMPILER INVOKED BY: C:\Keil\MDK\C51\BIN\C51.EXE system.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include<rtx51tny.h>
+   2          #include<reg52.h>
+   3          #include<absacc.h>
+   4          #define u8 unsigned char
+   5          
+   6          unsigned char ii=0;
+   7          sbit k3=P3^2; //设置温度上下限   
+   8          sbit k1=P3^1; //加         
+   9          sbit k2=P3^0; //减        
+  10          
+  11          sbit led=P2^4; //报警指示灯
+  12          
+  13          
+  14          
+  15          char set_templ=22,set_temph=40;  //设定温度上下限默认值
+  16          unsigned short temp_val;  //检测的实际温度
+  17          unsigned char mode;  //温度模式
+  18          
+  19          
+  20          void delay(unsigned int z)
+  21          {
+  22   1          unsigned int x,y;
+  23   1          for(x = z;x > 0;x--){
+  24   2              for(y =110;y > 0;y--);
+  25   2          }
+  26   1      }
+  27          
+  28          void Temp_DataPros()
+  29          {
+  30   1        short temp;
+  31   1        unsigned char temp_buf[5];
+  32   1        temp=Ds18b20ReadTemp();
+*** WARNING C206 IN LINE 32 OF system.c: 'Ds18b20ReadTemp': missing function-prototype
+  33   1        temp_val=temp;  
+  34   1        if(temp<0)
+  35   1        {
+  36   2          temp=-temp;
+  37   2          LCD_Dispstring(2+5,0,"-");
+*** WARNING C206 IN LINE 37 OF system.c: 'LCD_Dispstring': missing function-prototype
+*** ERROR C267 IN LINE 37 OF system.c: 'LCD_Dispstring': requires ANSI-style prototype
+  38   2        }
+  39   1        else
+  40   1        {
+  41   2          LCD_Dispstring(2+5,0," ");
+  42   2        }
+  43   1      
+  44   1        temp_buf[0]=temp/100+0x30;
+  45   1        temp_buf[1]=temp%100/10+0x30;
+  46   1        temp_buf[2]='.';
+  47   1        temp_buf[3]=temp%100%10+0x30;
+  48   1        temp_buf[4]='\0';
+  49   1        LCD_Dispstring(2+6,0,temp_buf);    //显示检测的温度xx.x
+  50   1      
+  51   1        temp_buf[0]=set_temph/10+0x30;
+  52   1          temp_buf[1]=set_temph%10+0x30;
+C51 COMPILER V9.54   SYSTEM                                                                12/23/2021 10:19:20 PAGE 2   
+
+  53   1        temp_buf[2]='\0';
+  54   1        LCD_Dispstring(5,1,temp_buf);   //显示设定的温度上限值xx
+  55   1      
+  56   1        temp_buf[0]=set_templ/10+0x30;
+  57   1          temp_buf[1]=set_templ%10+0x30;
+  58   1        temp_buf[2]='\0';
+  59   1        LCD_Dispstring(14,1,temp_buf);   //显示设定的温度下限值xx
+  60   1      }
+  61          
+  62          
+  63          
+  64          #define  K1_MODE  1
+  65          #define  K2_ADD  2
+  66          #define  K3_DEC  3
+  67          
+  68          //mode:  0-单次扫描   1-连续扫描
+  69          unsigned char KEY_Scan(u8 mode)
+  70          {
+  71   1        static u8 key=1;
+  72   1        if(key&&(k1==0||k2==0||k3==0))
+  73   1        {
+  74   2          delay(1000);   //消抖
+  75   2          key=0;
+  76   2          if(k3==0)
+  77   2          {
+  78   3            return K3_DEC;
+  79   3          }
+  80   2          else if(k1==0)
+  81   2          {
+  82   3            return K1_MODE;
+  83   3          }
+  84   2          else if(k2==0)
+  85   2          {
+  86   3            return K2_ADD;  
+  87   3          }
+  88   2        }
+  89   1        else if(k1==1&&k2==1&&k3==1)
+  90   1        {
+  91   2          key=1;  
+  92   2        }
+  93   1        if(mode)
+  94   1        {
+  95   2          key=1;
+  96   2        }
+  97   1        return 0; 
+  98   1      }
+  99          
+ 100          void KEY_Pros()
+ 101          {
+ 102   1        u8 key;
+ 103   1        u8 temph_buf[3];
+ 104   1      
+ 105   1        key=KEY_Scan(0);
+ 106   1        
+ 107   1        if(key==K1_MODE)   //模式选择
+ 108   1        {
+ 109   2          mode++;
+ 110   2          LCD_Clear();
+ 111   2      
+ 112   2          if(mode==1)
+ 113   2          {
+ 114   3            LCD_Dispstring(0,0,"SETH:   C");    
+C51 COMPILER V9.54   SYSTEM                                                                12/23/2021 10:19:20 PAGE 3   
+
+ 115   3          }
+ 116   2          else if(mode==2)
+ 117   2          {
+ 118   3            LCD_Dispstring(0,1,"SETL:   C");  
+ 119   3          }
+ 120   2          else 
+ 121   2          {
+ 122   3            mode=0;
+ 123   3            LCD_Dispstring(2,0,"Temp:     C");
+ 124   3            LCD_Dispstring(0,1,"SETH:  ");
+ 125   3            LCD_Dispstring(9,1,"SETL:  ");  
+ 126   3          }
+ 127   2        }
+ 128   1        if(mode==1)  //温度上限设置
+ 129   1        {
+ 130   2          switch(key) 
+ 131   2          {
+ 132   3            case K2_ADD:     //加
+ 133   3                  set_temph++;
+ 134   3                  if(set_temph>=80)set_temph=80;
+ 135   3                  break;
+ 136   3            case K3_DEC:   //减
+ 137   3                  set_temph--;
+ 138   3                  if(set_temph<=0)set_temph=0;
+ 139   3                  break;
+ 140   3          }
+ 141   2      
+ 142   2          temph_buf[0]=set_temph/10+0x30;
+ 143   2          temph_buf[1]=set_temph%10+0x30;
+ 144   2          temph_buf[2]='\0';
+ 145   2            LCD_Dispstring(6,0,temph_buf);
+ 146   2          At24c02Write(0,set_temph);
+ 147   2        }
+ 148   1      
+ 149   1        else if(mode==2)  //温度下限设置
+ 150   1        {
+ 151   2          switch(key) 
+ 152   2          {
+ 153   3            case K2_ADD:     //加
+ 154   3                  set_templ++;
+ 155   3                  if(set_templ>=80)set_templ=80;
+ 156   3                  break;
+ 157   3            case K3_DEC:   //减
+ 158   3                  set_templ--;
+ 159   3                  if(set_templ<=0)set_templ=0;
+ 160   3                  break;
+ 161   3          }
+ 162   2      
+ 163   2          temph_buf[0]=set_templ/10+0x30;
+ 164   2          temph_buf[1]=set_templ%10+0x30;
+ 165   2          temph_buf[2]='\0';
+ 166   2            LCD_Dispstring(6,1,temph_buf);
+ 167   2          At24c02Write(2,set_templ);
+ 168   2        }
+ 169   1      }
+ 170          
+ 171          //void sound1()//蜂鸣器高频
+ 172          //{
+ 173          //  u8 i=50;
+ 174          //  while(i--)
+ 175          //  {
+ 176          //    beep=!beep;
+C51 COMPILER V9.54   SYSTEM                                                                12/23/2021 10:19:20 PAGE 4   
+
+ 177          //    delay(10);
+ 178          //  }
+ 179          //}
+ 180          
+ 181          //void sound2()//蜂鸣器低频
+ 182          //{
+ 183          //  u8 i=50;
+ 184          //  while(i--)
+ 185          //  {
+ 186          //    beep=!beep;
+ 187          //    delay(1000);
+ 188          //  }
+ 189          //}
+ 190          
+ 191          void TempData_Compare()
+ 192          {
+ 193   1        if(temp_val>set_temph*10) //实际温度高于上限值   报警  
+ 194   1        {
+ 195   2          led=1;
+ 196   2          moto=1;
+ 197   2          relay=1;
+ 198   2          sound1();   
+ 199   2        }
+ 200   1        else if(temp_val<set_templ*10)   //实际温度低于下限值   报警  
+ 201   1        {
+ 202   2          led=1;
+ 203   2          moto=0;
+ 204   2          relay=0;
+ 205   2          sound2();   
+ 206   2        }
+ 207   1        else  //实际温度在下限值和上限值之间   取消报警  
+ 208   1        {
+ 209   2          moto=0;
+ 210   2          led=0;
+ 211   2          relay=1;
+ 212   2        }
+ 213   1      }
+ 214          
+ 215          void kai_display()
+ 216          {
+ 217   1        if(At24c02Read(255)!=18)
+ 218   1        {
+ 219   2          At24c02Write(0,set_temph);
+ 220   2          At24c02Write(2,set_templ);
+ 221   2          At24c02Write(255,18); 
+ 222   2        }
+ 223   1        else
+ 224   1        {
+ 225   2          set_temph=At24c02Read(0);
+ 226   2          set_templ=At24c02Read(2); 
+ 227   2        }
+ 228   1      
+ 229   1        LCD_Dispstring(2,0,"Temp:     C");
+ 230   1        LCD_Dispstring(0,1,"SETH:  ");
+ 231   1        LCD_Dispstring(9,1,"SETL:  ");
+ 232   1      }
+ 233          
+ 234          job0()_task_ 0  //创建任务
+ 235          {
+ 236   1        os_create_task(1);
+ 237   1        os_create_task(2);
+ 238   1        os_create_task(3);
+C51 COMPILER V9.54   SYSTEM                                                                12/23/2021 10:19:20 PAGE 5   
+
+ 239   1        while(1)
+ 240   1        {
+ 241   2          for(ii=0; ii<3; ii++)
+ 242   2          {
+ 243   3            os_send_signal(ii);
+ 244   3            os_wait2(K_IVL,10);
+ 245   3          }
+ 246   2        }
+ 247   1            //os_delete_task(0);
+ 248   1      }
+ 249          
+ 250          job1()_task_ 1   //任务1
+ 251          {
+ 252   1        moto=0;
+ 253   1        led=0;
+ 254   1        relay=1;
+ 255   1      }
+ 256          
+ 257          job2()_task_ 2  //任务2
+ 258          {
+ 259   1        LCD_Init();
+ 260   1        kai_display();
+ 261   1        while(1)
+ 262   1        {
+ 263   2          if(mode==0)
+ 264   2          Temp_DataPros();
+ 265   2          KEY_Pros(); 
+ 266   2          TempData_Compare();       
+ 267   2        }
+ 268   1      }
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  1 ERROR(S)

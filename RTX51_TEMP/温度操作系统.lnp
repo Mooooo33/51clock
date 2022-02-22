@@ -1,0 +1,6 @@
+"温度操作系统.obj",
+"i2c.obj",
+"lcd.obj",
+"public.obj",
+"temp.obj" 
+TO "温度操作系统" Rtx51Tiny 
